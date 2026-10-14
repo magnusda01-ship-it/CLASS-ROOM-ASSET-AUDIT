@@ -12,31 +12,79 @@ async function init() {
     branch.appendChild(o);
   });
 
-  // grouped cards with - / + buttons
-  const byKey = Object.fromEntries(cfg.equipment.map((e) => [e.key, e.label]));
+  // one tab per group (Furniture, SMT, CMT, Software), each with - / + counters
+  const byKey = Object.fromEntries(cfg.equipment.map((e) => [e.key, e.short || e.label]));
   const box = $("#equipment-groups");
-  cfg.groups.forEach((g) => {
-    const name = g.name.charAt(0) + g.name.slice(1).toLowerCase(); // FURNITURE -> Furniture
+  const tabs = document.createElement("div");
+  tabs.className = "tabs";
+  tabs.setAttribute("role", "tablist");
+  box.appendChild(tabs);
+
+  cfg.groups.forEach((g, gi) => {
+    const name = g.name.length <= 3 ? g.name : g.name.charAt(0) + g.name.slice(1).toLowerCase(); // FURNITURE -> Furniture, SMT stays SMT
+
+    const tab = document.createElement("button");
+    tab.type = "button";
+    tab.className = "tab";
+    tab.dataset.tab = gi;
+    tab.id = `tab-${gi}`;
+    tab.setAttribute("role", "tab");
+    tab.setAttribute("aria-controls", `panel-${gi}`);
+    tab.innerHTML = `<span>${name}</span><b class="tab-count"></b>`;
+    tabs.appendChild(tab);
+
     const card = document.createElement("div");
     card.className = "group";
+    card.dataset.tab = gi;
+    card.id = `panel-${gi}`;
+    card.setAttribute("role", "tabpanel");
+    card.setAttribute("aria-labelledby", `tab-${gi}`);
     card.innerHTML =
       `<div class="group-head"><h3>${name}</h3>` +
       `<span class="sub"><b data-sub>0</b> units</span></div>` +
+      `<div class="group-items">` +
       g.keys
         .map(
-          (k) =>
-            `<div class="item"><span class="item-name">${byKey[k]}</span>` +
+          (k, idx) =>
+            `<div class="item"><span class="item-name">${g.numbered ? `<i class="sl">${idx + 1}</i>` : ""}${byKey[k]}</span>` +
             `<span class="stepper">` +
             `<button type="button" class="step" data-step="-1" aria-label="Decrease ${byKey[k]}">&minus;</button>` +
             `<input type="text" inputmode="numeric" value="0" data-key="${k}" aria-label="${byKey[k]}">` +
             `<button type="button" class="step" data-step="1" aria-label="Increase ${byKey[k]}">+</button>` +
             `</span></div>`
         )
-        .join("");
+        .join("") +
+      `</div>`;
     box.appendChild(card);
   });
+  activateTab(0);
   refresh();
 }
+
+function activateTab(i) {
+  document.querySelectorAll("#equipment-groups .tab").forEach((t) => {
+    const on = Number(t.dataset.tab) === i;
+    t.classList.toggle("on", on);
+    t.setAttribute("aria-selected", on ? "true" : "false");
+    t.tabIndex = on ? 0 : -1;
+  });
+  document.querySelectorAll("#equipment-groups .group").forEach((g) => {
+    g.hidden = Number(g.dataset.tab) !== i;
+  });
+}
+
+document.addEventListener("click", (ev) => {
+  const tab = ev.target.closest("#equipment-groups .tab");
+  if (tab) activateTab(Number(tab.dataset.tab));
+});
+document.addEventListener("keydown", (ev) => {
+  const tab = ev.target.closest && ev.target.closest("#equipment-groups .tab");
+  if (!tab || (ev.key !== "ArrowRight" && ev.key !== "ArrowLeft")) return;
+  const all = [...document.querySelectorAll("#equipment-groups .tab")];
+  const next = (all.indexOf(tab) + (ev.key === "ArrowRight" ? 1 : all.length - 1)) % all.length;
+  activateTab(next);
+  all[next].focus();
+});
 
 // group subtotals, highlight of counted items, running total
 function refresh() {
@@ -49,6 +97,8 @@ function refresh() {
       i.classList.toggle("has", n > 0);
     });
     g.querySelector("[data-sub]").textContent = sub.toLocaleString("en-IN");
+    const count = document.querySelector(`#equipment-groups .tab[data-tab="${g.dataset.tab}"] .tab-count`);
+    if (count) count.textContent = sub > 0 ? sub.toLocaleString("en-IN") : "";
     total += sub;
   });
   $("#tally-total").textContent = total.toLocaleString("en-IN");
@@ -86,6 +136,7 @@ document.addEventListener("focusin", (ev) => {
 function clearErrors() {
   document.querySelectorAll(".err").forEach((s) => (s.textContent = ""));
   document.querySelectorAll(".invalid").forEach((i) => i.classList.remove("invalid"));
+  document.querySelectorAll(".tab.has-error").forEach((t) => t.classList.remove("has-error"));
 }
 
 function showErrors(errors) {
@@ -97,7 +148,14 @@ function showErrors(errors) {
       s.previousElementSibling?.classList.add("invalid");
     }
   });
-  document.querySelector(".invalid")?.scrollIntoView({ block: "center", behavior: "smooth" });
+  document.querySelectorAll(".group .invalid").forEach((i) => {
+    const g = i.closest(".group");
+    document.querySelector(`#equipment-groups .tab[data-tab="${g.dataset.tab}"]`)?.classList.add("has-error");
+  });
+  const firstGroupBad = document.querySelector(".group .invalid");
+  const firstFormBad = document.querySelector(".fields .invalid");
+  if (!firstFormBad && firstGroupBad) activateTab(Number(firstGroupBad.closest(".group").dataset.tab));
+  (firstFormBad || firstGroupBad)?.scrollIntoView({ block: "center", behavior: "smooth" });
 }
 
 $("#audit-form").addEventListener("submit", async (ev) => {

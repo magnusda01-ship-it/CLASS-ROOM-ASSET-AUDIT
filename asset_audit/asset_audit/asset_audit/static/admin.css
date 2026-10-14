@@ -80,7 +80,7 @@ body {
 .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; }
 
 /* ---------------------------------------------------------- equipment matrix */
-table.matrix { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 1640px; table-layout: fixed; }
+table.matrix { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 1850px; table-layout: fixed; }
 .matrix th, .matrix td { height: 42px; padding: 0 6px; border-bottom: 1px solid var(--soft); border-right: 1px solid var(--soft); text-align: center; font-variant-numeric: tabular-nums; }
 .matrix tr > *:last-child { border-right: 0; }
 .matrix tbody tr:last-child > * { border-bottom: 0; }
@@ -97,7 +97,7 @@ table.matrix { border-collapse: separate; border-spacing: 0; width: 100%; min-wi
   border-bottom: 1px solid var(--line);
 }
 .matrix thead th:first-child {
-  width: 190px; text-align: left; padding-left: 16px;
+  width: 300px; text-align: left; padding-left: 16px; position: sticky; left: 0; z-index: 2;
   font-size: 17px; text-transform: none; letter-spacing: 0;
 }
 .dot { display: block; width: 8px; height: 8px; border-radius: 50%; margin: 0 auto 6px; background: #c8d3cf; }
@@ -107,11 +107,14 @@ table.matrix { border-collapse: separate; border-spacing: 0; width: 100%; min-wi
 .matrix tbody th {
   position: sticky; left: 0; z-index: 1;
   text-align: left; padding-left: 16px;
-  font-size: 13.5px; font-weight: 600; white-space: nowrap;
+  font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   background: var(--paper);
   border-right: 1px solid var(--line);
 }
 .matrix tbody td { font-size: 15px; font-weight: 600; }
+.matrix tbody tr { --row-h: 38px; }
+.matrix tbody tr > * { height: var(--row-h); }
+.matrix tbody tr.grp-start > * { border-top: 2px solid var(--line); }
 .matrix tbody tr:nth-child(even) > * { background: #fafcfb; }
 .matrix tbody tr:hover > * { background: #eef6f3; }
 .matrix td.zero { color: var(--faint); font-weight: 500; }

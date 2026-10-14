@@ -27,32 +27,48 @@ BRANCHES = [
     "TRIVANDRUM", "MARTHANDAM", "NAGPUR", "HYDERABAD", "BANGALORE",
 ]
 
-# key, label  (TOTAL IRON and CABLE are the 2 additional options)
-EQUIPMENT = [
+# Furniture is a simple pair of totals.
+FURNITURE = [
     ("student_table", "TOTAL STUDENT TABLE"),
     ("student_chair", "TOTAL STUDENT CHAIR"),
-    ("laptop", "TOTAL LAPTOP"),
-    ("blower", "TOTAL BLOWER"),
-    ("iron", "TOTAL IRON"),
-    ("microscope", "TOTAL MICROSCOPE"),
-    ("bga_machine", "TOTAL BGA MACHINE"),
-    ("umt_pro", "UMT PRO"),
-    ("f64", "F 64"),
-    ("ufi_box", "UFI BOX"),
-    ("jcid", "JCID"),
-    ("interactive_panel", "INTERACTIVE PANEL"),
-    ("tv", "TV"),
-    ("cable", "CABLE"),
 ]
-KEYS = [k for k, _ in EQUIPMENT]
 
-# How the equipment is grouped on the branch form (keys from EQUIPMENT above).
-GROUPS = [
-    ("FURNITURE", ["student_table", "student_chair"]),
-    ("ELECTRONICS", ["laptop", "tv", "interactive_panel", "cable"]),
-    ("LAB TOOLS", ["blower", "iron", "microscope", "bga_machine",
-                   "umt_pro", "f64", "ufi_box", "jcid"]),
+# The three numbered asset tables (SL NO + NAME). Keys are table + SL NO,
+# e.g. smt_1, cmt_3, software_6, so the same name can appear in several tables.
+TABLES = [
+    ("SMT", [
+        "LAPTOP", "BLOWER", "IRON", "DC POWER SUPPLY", "MOBILE PHONE DRYER",
+        "MINI POLISHING PEN", "MULTI CHARGER", "VIBRATOR", "SEPARATOR MACHINE",
+        "LAMINATION MACHINE", "IC STAND", "SHORT KILLER", "MICROSCOPE",
+        "MICROSCOPE CAMERA", "BATTERY BOOSTER", "BOOT CABLE", "UV LIGHT",
+        "OSCILLOSCOPE", "ROSING PEN", "IPHONE BOARD SEPARATOR",
+    ]),
+    ("CMT", [
+        "LAPTOP", "BGA MACHINE", "BLOWER", "IRON", "SVOD KBC PROGRAMMER",
+        "RT809F BIOS PROGRAMMER", "MACBOOK", "IC STAND", "IC STECIL",
+        "DC POWER SUPPLY", "C TESTER", "DC CONNECTOR", "PENDRIVE",
+        "WORKING MOTHER BOARD", "IDENTIFICATION ITEM", "SCREW DRIVER",
+        "MAC SCREW DRIVER SET",
+    ]),
+    ("SOFTWARE", [
+        "UMT", "F64", "UFI", "V1S PRO", "LAPTOP", "SOFTWARE PHONE",
+    ]),
 ]
+
+# key, label (label is what the admin matrix / Excel / CSV show),
+# SHORT = the plain name shown inside each card on the branch form.
+EQUIPMENT = list(FURNITURE)
+SHORT = dict(FURNITURE)
+GROUPS = [("FURNITURE", [k for k, _ in FURNITURE], False)]
+for _table, _names in TABLES:
+    _keys = []
+    for _i, _name in enumerate(_names, 1):
+        _key = f"{_table.lower()}_{_i}"
+        EQUIPMENT.append((_key, f"{_table} - {_name}"))
+        SHORT[_key] = _name
+        _keys.append(_key)
+    GROUPS.append((_table, _keys, True))
+KEYS = [k for k, _ in EQUIPMENT]
 
 
 def db():
@@ -112,8 +128,8 @@ def admin():
 def config():
     return jsonify(
         branches=BRANCHES,
-        equipment=[{"key": k, "label": l} for k, l in EQUIPMENT],
-        groups=[{"name": n, "keys": ks} for n, ks in GROUPS],
+        equipment=[{"key": k, "label": l, "short": SHORT[k]} for k, l in EQUIPMENT],
+        groups=[{"name": n, "keys": ks, "numbered": nb} for n, ks, nb in GROUPS],
     )
 
 

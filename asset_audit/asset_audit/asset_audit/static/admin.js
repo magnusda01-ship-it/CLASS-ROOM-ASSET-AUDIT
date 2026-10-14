@@ -50,8 +50,12 @@ async function load() {
   h += "</tr></thead><tbody>";
 
   const totals = Object.fromEntries(r.branches.map((b) => [b, 0]));
+  let prevGroup = null;
   r.equipment.forEach((e) => {
-    h += `<tr><th scope="row">${esc(e.label)}</th>`;
+    const group = e.key.split("_")[0];
+    const start = prevGroup !== null && group !== prevGroup;
+    prevGroup = group;
+    h += `<tr class="${start ? "grp-start" : ""}"><th scope="row" title="${esc(e.label)}">${esc(e.label)}</th>`;
     r.branches.forEach((b) => {
       const v = r.matrix[e.key][b];
       if (v === null || v === undefined) {
