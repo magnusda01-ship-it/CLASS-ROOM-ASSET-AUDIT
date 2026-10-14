@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}?v=2">
+  <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}?v=3">
 </head>
 <body>
   <section class="hero">
@@ -74,12 +74,13 @@
       </div>
       <p id="edit-status" class="edit-status" role="status"></p>
       <div class="edit-actions">
+        <button type="button" id="edit-delete" class="edit-button danger" hidden>Delete report</button>
         <button type="button" id="edit-cancel" class="edit-button secondary">Cancel</button>
         <button type="submit" class="edit-button primary">Save changes</button>
       </div>
     </form>
   </dialog>
 
-  <script src="{{ url_for('static', filename='admin.js') }}?v=2"></script>
+  <script src="{{ url_for('static', filename='admin.js') }}?v=3"></script>
 </body>
 </html>

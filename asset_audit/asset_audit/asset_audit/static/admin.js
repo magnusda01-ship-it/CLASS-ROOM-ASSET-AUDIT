@@ -133,6 +133,7 @@ function openEditor(submissionId, branch) {
     input.value = details ? details.counts[input.dataset.editKey] ?? 0 : 0;
   });
   $("#edit-status").textContent = "";
+  $("#edit-delete").hidden = !details;
   $("#edit-dialog").showModal();
 }
 
@@ -166,6 +167,33 @@ $("#sheet").addEventListener("mouseover", (ev) => {
   setHoverCol(cell ? cell.cellIndex : -1);
 });
 $("#sheet").addEventListener("mouseleave", () => setHoverCol(-1));
+
+$("#edit-delete").addEventListener("click", async () => {
+  if (editSubmissionId === null) return;
+  const branch = $("#edit-form").elements.branch.value;
+  if (!confirm(`Delete the ${branch} report? This cannot be undone.`)) return;
+  const btn = $("#edit-delete");
+  const status = $("#edit-status");
+  btn.disabled = true;
+  status.className = "edit-status";
+  status.textContent = "";
+  try {
+    const res = await fetch(`/api/submissions/${editSubmissionId}`, { method: "DELETE" });
+    const data = await res.json();
+    if (!res.ok) {
+      status.classList.add("bad");
+      status.textContent = data.message || `Could not delete the report (error ${res.status}).`;
+      return;
+    }
+    $("#edit-dialog").close();
+    await load();
+  } catch (e) {
+    status.classList.add("bad");
+    status.textContent = "Could not reach the server. Check the connection and try again.";
+  } finally {
+    btn.disabled = false;
+  }
+});
 
 $("#edit-close").addEventListener("click", () => $("#edit-dialog").close());
 $("#edit-cancel").addEventListener("click", () => $("#edit-dialog").close());

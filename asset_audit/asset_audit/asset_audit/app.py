@@ -308,6 +308,30 @@ def update_submission(submission_id):
     return jsonify(ok=True)
 
 
+@app.route("/api/submissions/<int:submission_id>", methods=["DELETE"])
+@admin_required
+def delete_submission(submission_id):
+    """Remove a branch's report (and any older reports of the same branch, so an
+    earlier trial entry doesn't pop back up as the 'latest' one)."""
+    with db() as con:
+        con.execute("BEGIN IMMEDIATE")
+        existing = con.execute(
+            "SELECT id, branch FROM submissions WHERE id = ?", (submission_id,)
+        ).fetchone()
+        if existing is None:
+            return jsonify(ok=False, message="This report no longer exists."), 404
+        latest = con.execute(
+            "SELECT MAX(id) FROM submissions WHERE branch = ?", (existing["branch"],)
+        ).fetchone()[0]
+        if latest != submission_id:
+            return jsonify(
+                ok=False,
+                message="A newer report was submitted for this branch. Refresh and try again.",
+            ), 409
+        con.execute("DELETE FROM submissions WHERE branch = ?", (existing["branch"],))
+    return jsonify(ok=True)
+
+
 @app.route("/api/export.csv")
 @admin_required
 def export_csv():
