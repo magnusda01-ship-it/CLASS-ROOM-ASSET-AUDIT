@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Asset Audit - Admin</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header>
+    <div>
+      <h1>CLASS ROOM ASSET AUDIT &mdash; ADMIN</h1>
+      <p id="status" class="muted">Loading…</p>
+    </div>
+    <div class="toolbar">
+      <button id="refresh" class="ghost">Refresh</button>
+      <a class="btn primary" href="/api/export.xlsx">Download Excel</a>
+      <a class="btn ghost" href="/api/export.csv">Download CSV</a>
+      <button id="print" class="ghost">Print / PDF</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="table-wrap"><table id="sheet" class="sheet"></table></div>
+
+    <h2>Branch details</h2>
+    <div class="table-wrap"><table id="details" class="details"></table></div>
+  </main>
+
+  <script src="{{ url_for('static', filename='admin.js') }}"></script>
+</body>
+</html>

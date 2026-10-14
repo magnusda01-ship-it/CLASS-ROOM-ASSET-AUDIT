@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Class room asset audit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='form.css') }}">
+</head>
+<body>
+  <section class="hero">
+    <!-- circuit traces: a nod to the chip-level repair labs being audited -->
+    <svg class="traces" viewBox="0 0 1200 380" preserveAspectRatio="xMaxYMid slice" aria-hidden="true" focusable="false">
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path pathLength="1" d="M1200 70 H1040 L990 120 H860 L820 160 H700"/>
+        <path pathLength="1" d="M1200 150 H1110 L1070 190 H930 L900 220 H760"/>
+        <path pathLength="1" d="M1200 240 H1150 L1100 290 H980"/>
+        <path pathLength="1" d="M1200 320 H1060 L1030 350 H900"/>
+        <circle cx="700" cy="160" r="5"/>
+        <circle cx="760" cy="220" r="5"/>
+        <circle cx="980" cy="290" r="5"/>
+        <circle cx="900" cy="350" r="5"/>
+      </g>
+    </svg>
+    <div class="hero-inner">
+      <h1>CLASS ROOM ASSET AUDIT</h1>
+      <p class="lead">Please complete the <strong>Branch Asset Audit Report</strong> with the utmost accuracy. Carefully verify all asset details, including the asset name, quantity, condition, and location. Enter the actual physical count of each item and ensure that the information matches the assets available at the branch.</p>
+      <p>Please do not estimate, assume, or leave out any details. Report any damaged, missing, non-functional, or excess items accurately, and provide remarks wherever necessary. This information will be used for official audit and verification purposes. The person submitting the report is responsible for ensuring that all details are complete and accurate.</p>
+    </div>
+  </section>
+
+  <main class="sheet">
+    <form id="audit-form" novalidate>
+
+      <section class="block" aria-labelledby="h-branch">
+        <h2 id="h-branch">Branch details</h2>
+        <div class="fields">
+          <label><span>Branch name <span class="req" aria-hidden="true">*</span></span>
+            <select name="branch" id="branch"><option value="">Choose</option></select>
+            <small class="err" data-for="branch"></small>
+          </label>
+          <label><span>Class room count <span class="req" aria-hidden="true">*</span></span>
+            <input type="number" min="0" name="classroom_count" inputmode="numeric">
+            <small class="err" data-for="classroom_count"></small>
+          </label>
+          <label><span>HOF name <span class="req" aria-hidden="true">*</span></span>
+            <input type="text" name="hof_name" autocomplete="name">
+            <small class="err" data-for="hof_name"></small>
+          </label>
+          <label><span>HOF contact number <span class="req" aria-hidden="true">*</span></span>
+            <input type="tel" name="hof_contact" autocomplete="tel">
+            <small class="err" data-for="hof_contact"></small>
+          </label>
+        </div>
+      </section>
+
+      <section class="block" aria-labelledby="h-equipment">
+        <h2 id="h-equipment">Equipment</h2>
+        <p class="hint">Enter the physical count of each item. Use 0 if the branch has none.</p>
+        <div class="groups" id="equipment-groups"></div>
+      </section>
+
+      <section class="block" aria-labelledby="h-remarks">
+        <h2 id="h-remarks">Lab assets and remarks</h2>
+        <div class="fields one">
+          <label>Total asset in lab (mention the asset name and count)
+            <textarea name="lab_assets" rows="3"></textarea>
+          </label>
+          <label>Any suggestions
+            <textarea name="suggestions" rows="3"></textarea>
+          </label>
+        </div>
+      </section>
+
+      <div class="bar">
+        <div class="tally">
+          <div class="tally-row"><strong id="tally-total">0</strong><span>items counted</span></div>
+          <p id="form-msg" class="msg" role="status"></p>
+        </div>
+        <div class="bar-actions">
+          <button type="reset" class="btn btn-ghost">Clear form</button>
+          <button type="submit" id="submit-btn" class="btn btn-primary">Submit report</button>
+        </div>
+      </div>
+
+    </form>
+  </main>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
