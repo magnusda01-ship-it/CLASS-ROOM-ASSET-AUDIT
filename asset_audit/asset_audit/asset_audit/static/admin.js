@@ -70,17 +70,18 @@ async function load() {
   $("#sheet").innerHTML = h;
 
   // ----- branch details -----
-  let d = "<thead><tr><th>Branch</th><th>Class rooms</th><th>HOF</th><th>Contact</th>" +
-          "<th>Lab assets</th><th>Suggestions</th><th>Submitted</th><th>Action</th></tr></thead><tbody>";
+  let d = "<thead><tr><th>Branch</th><th class=\"action-column\">Action</th><th>Class rooms</th><th>HOF</th><th>Contact</th>" +
+          "<th>Lab assets</th><th>Suggestions</th><th>Submitted</th></tr></thead><tbody>";
   let any = false;
   r.branches.forEach((b) => {
     const x = r.details[b];
     if (!x) return;
     any = true;
-    d += `<tr><td>${esc(b)}</td><td class="num">${x.classroom_count}</td><td>${esc(x.hof_name)}</td>` +
+    d += `<tr><td>${esc(b)}</td>` +
+         `<td class="action-column"><button type="button" class="edit-button table-edit" data-edit-id="${x.id}" data-branch="${esc(b)}">Edit</button></td>` +
+         `<td class="num">${x.classroom_count}</td><td>${esc(x.hof_name)}</td>` +
          `<td class="num">${esc(x.hof_contact)}</td><td>${esc(x.lab_assets)}</td>` +
-         `<td>${esc(x.suggestions)}</td><td class="num">${esc(x.submitted)}</td>` +
-         `<td><button type="button" class="edit-button table-edit" data-edit-id="${x.id}" data-branch="${esc(b)}">Edit</button></td></tr>`;
+         `<td>${esc(x.suggestions)}</td><td class="num">${esc(x.submitted)}</td></tr>`;
   });
   if (!any) d += '<tr><td colspan="8" class="empty">No reports yet. They appear here as soon as a branch submits the form.</td></tr>';
   d += "</tbody>";

@@ -134,6 +134,7 @@ table.details { border-collapse: collapse; width: 100%; font-size: 14px; }
 .details tbody tr:last-child td { border-bottom: 0; }
 .details tbody tr:hover td { background: #f6faf9; }
 .details td:first-child { font-weight: 700; }
+.details .action-column { width: 84px; min-width: 84px; text-align: center; }
 .details .num { font-variant-numeric: tabular-nums; }
 .details .empty { padding: 28px 16px; color: var(--muted); text-align: center; }
 
@@ -216,7 +217,7 @@ table.details { border-collapse: collapse; width: 100%; font-size: 14px; }
   .hero { background: #fff; color: var(--ink); padding: 0 0 10px; }
   .subtitle, .big span, .p-label, .updated { color: var(--muted); }
   .track, .pending { display: none; }
-  .details th:last-child, .details td:last-child { display: none; }
+  .details .action-column { display: none; }
   .sheet { margin: 0; border: 0; box-shadow: none; padding: 0; }
   .table-wrap { overflow: visible; border-radius: 0; }
   table.matrix { min-width: 0; }
