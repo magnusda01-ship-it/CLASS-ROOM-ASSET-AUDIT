@@ -43,7 +43,9 @@ async function load() {
   // ----- equipment matrix: equipment rows x branch columns + TOTAL row -----
   let h = "<thead><tr><th>Equipments</th>";
   r.branches.forEach((b) => {
-    h += `<th class="${r.details[b] ? "done" : ""}"><i class="dot"></i>${esc(b)}</th>`;
+    const det = r.details[b];
+    h += `<th class="${det ? "done" : ""}"><i class="dot"></i>${esc(b)}` +
+         `<button type="button" class="edit-button col-edit" data-edit-id="${det ? det.id : ""}" data-branch="${esc(b)}">${det ? "Edit" : "Add"}</button></th>`;
   });
   h += "</tr></thead><tbody>";
 
@@ -104,22 +106,26 @@ async function initializeEditor() {
 }
 
 function openEditor(submissionId, branch) {
-  const details = currentReport?.details?.[branch];
-  if (!details || details.id !== submissionId) {
-    setUpdated("This report changed. Refresh the page and try again.", true);
-    return;
+  const form = $("#edit-form");
+  let details = null;
+  if (submissionId !== null) {
+    details = currentReport?.details?.[branch];
+    if (!details || details.id !== submissionId) {
+      setUpdated("This report changed. Refresh the page and try again.", true);
+      return;
+    }
   }
 
   editSubmissionId = submissionId;
-  const form = $("#edit-form");
+  $("#edit-title").textContent = details ? "Edit branch report" : "Add branch report";
   form.elements.branch.value = branch;
-  form.elements.classroom_count.value = details.classroom_count;
-  form.elements.hof_name.value = details.hof_name;
-  form.elements.hof_contact.value = details.hof_contact;
-  form.elements.lab_assets.value = details.lab_assets || "";
-  form.elements.suggestions.value = details.suggestions || "";
+  form.elements.classroom_count.value = details ? details.classroom_count : 0;
+  form.elements.hof_name.value = details ? details.hof_name : "";
+  form.elements.hof_contact.value = details ? details.hof_contact : "";
+  form.elements.lab_assets.value = details?.lab_assets || "";
+  form.elements.suggestions.value = details?.suggestions || "";
   $("#edit-equipment").querySelectorAll("[data-edit-key]").forEach((input) => {
-    input.value = details.counts[input.dataset.editKey] ?? 0;
+    input.value = details ? details.counts[input.dataset.editKey] ?? 0 : 0;
   });
   $("#edit-status").textContent = "";
   $("#edit-dialog").showModal();
@@ -128,11 +134,14 @@ function openEditor(submissionId, branch) {
 $("#refresh").addEventListener("click", load);
 $("#print").addEventListener("click", () => window.print());
 
-$("#details").addEventListener("click", (ev) => {
+function onEditClick(ev) {
   const button = ev.target.closest("[data-edit-id]");
   if (!button) return;
-  openEditor(Number(button.dataset.editId), button.dataset.branch);
-});
+  const id = button.dataset.editId;
+  openEditor(id === "" ? null : Number(id), button.dataset.branch);
+}
+$("#details").addEventListener("click", onEditClick);
+$("#sheet").addEventListener("click", onEditClick);
 
 $("#edit-close").addEventListener("click", () => $("#edit-dialog").close());
 $("#edit-cancel").addEventListener("click", () => $("#edit-dialog").close());
@@ -160,8 +169,9 @@ $("#edit-form").addEventListener("submit", async (ev) => {
   status.className = "edit-status";
   status.textContent = "";
   try {
-    const res = await fetch(`/api/submissions/${editSubmissionId}`, {
-      method: "PUT",
+    const isNew = editSubmissionId === null;
+    const res = await fetch(isNew ? "/api/submit" : `/api/submissions/${editSubmissionId}`, {
+      method: isNew ? "POST" : "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });

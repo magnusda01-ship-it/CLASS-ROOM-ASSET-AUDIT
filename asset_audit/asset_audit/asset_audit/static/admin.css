@@ -152,6 +152,8 @@ table.details { border-collapse: collapse; width: 100%; font-size: 14px; }
 .edit-button.secondary { background: #fff; color: var(--ink); border-color: var(--line); }
 .edit-button:disabled { opacity: .6; cursor: wait; }
 .table-edit { padding: 5px 12px; }
+.matrix thead th .col-edit { display: block; margin: 6px auto 0; padding: 3px 10px; font-size: 11px; background: #fff; color: var(--board); }
+.matrix thead th .col-edit:hover { background: var(--board); color: #fff; }
 
 #edit-dialog {
   width: min(760px, calc(100% - 24px));
@@ -218,6 +220,7 @@ table.details { border-collapse: collapse; width: 100%; font-size: 14px; }
   .subtitle, .big span, .p-label, .updated { color: var(--muted); }
   .track, .pending { display: none; }
   .details .action-column { display: none; }
+  .col-edit { display: none !important; }
   .sheet { margin: 0; border: 0; box-shadow: none; padding: 0; }
   .table-wrap { overflow: visible; border-radius: 0; }
   table.matrix { min-width: 0; }
