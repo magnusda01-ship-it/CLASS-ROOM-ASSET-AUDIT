@@ -11,7 +11,11 @@ from functools import wraps
 from flask import Flask, Response, jsonify, render_template, request, send_file
 
 app = Flask(__name__)
-DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "audit.db")
+# On Render, set DATABASE_PATH to a file on a persistent disk (e.g. /var/data/audit.db)
+# so the data survives restarts and redeploys.
+DB = os.environ.get("DATABASE_PATH") or os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "audit.db"
+)
 
 # Set ADMIN_PASSWORD in the environment to protect the admin window.
 # If it is not set, the admin window is open (fine for local testing only).
