@@ -6,7 +6,7 @@
   <title>Class room asset audit - Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}">
 </head>
 <body>
@@ -41,6 +41,44 @@
     <h2 class="second">Branch details</h2>
     <div class="table-wrap"><table id="details" class="details"></table></div>
   </main>
+
+  <dialog id="edit-dialog" aria-labelledby="edit-title">
+    <form id="edit-form">
+      <div class="edit-header">
+        <h2 id="edit-title">Edit branch report</h2>
+        <button type="button" id="edit-close" class="edit-close" aria-label="Close">×</button>
+      </div>
+      <div class="edit-fields">
+        <label>Branch
+          <select name="branch" id="edit-branch" required></select>
+        </label>
+        <label>Class room count
+          <input name="classroom_count" type="number" min="0" required>
+        </label>
+        <label>HOF name
+          <input name="hof_name" type="text" required>
+        </label>
+        <label>HOF contact number
+          <input name="hof_contact" type="tel" required>
+        </label>
+      </div>
+      <h3>Equipment counts</h3>
+      <div id="edit-equipment" class="edit-equipment"></div>
+      <div class="edit-fields edit-notes">
+        <label>Total asset in lab
+          <textarea name="lab_assets" rows="3"></textarea>
+        </label>
+        <label>Suggestions
+          <textarea name="suggestions" rows="3"></textarea>
+        </label>
+      </div>
+      <p id="edit-status" class="edit-status" role="status"></p>
+      <div class="edit-actions">
+        <button type="button" id="edit-cancel" class="edit-button secondary">Cancel</button>
+        <button type="submit" class="edit-button primary">Save changes</button>
+      </div>
+    </form>
+  </dialog>
 
   <script src="{{ url_for('static', filename='admin.js') }}"></script>
 </body>

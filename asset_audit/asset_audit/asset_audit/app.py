@@ -117,12 +117,11 @@ def config():
     )
 
 
-@app.route("/api/submit", methods=["POST"])
-def submit():
-    d = request.get_json(silent=True) or {}
+def validate_submission(d):
     errors = {}
 
-    branch = (d.get("branch") or "").strip().upper()
+    branch_value = d.get("branch")
+    branch = branch_value.strip().upper() if isinstance(branch_value, str) else ""
     if branch not in BRANCHES:
         errors["branch"] = "Choose a branch"
 
@@ -137,22 +136,44 @@ def submit():
     if classroom is None:
         errors["classroom_count"] = "Enter a valid number"
 
-    hof = (d.get("hof_name") or "").strip()
+    hof_value = d.get("hof_name")
+    hof = hof_value.strip() if isinstance(hof_value, str) else ""
     if not hof:
         errors["hof_name"] = "Required"
 
-    contact = (d.get("hof_contact") or "").strip()
+    contact_value = d.get("hof_contact")
+    contact = contact_value.strip() if isinstance(contact_value, str) else ""
     if not re.fullmatch(r"\+?[0-9 \-]{8,15}", contact):
         errors["hof_contact"] = "Enter a valid phone number"
 
+    raw_counts = d.get("counts")
+    raw_counts = raw_counts if isinstance(raw_counts, dict) else {}
     counts = {}
     for k in KEYS:
-        n = to_int((d.get("counts") or {}).get(k))
+        n = to_int(raw_counts.get(k))
         if n is None:
             errors[k] = "Enter a valid number (0 if none)"
         else:
             counts[k] = n
 
+    lab_assets = d.get("lab_assets")
+    suggestions = d.get("suggestions")
+    values = {
+        "branch": branch,
+        "classroom_count": classroom,
+        "hof_name": hof,
+        "hof_contact": contact,
+        "counts": counts,
+        "lab_assets": lab_assets.strip() if isinstance(lab_assets, str) else "",
+        "suggestions": suggestions.strip() if isinstance(suggestions, str) else "",
+    }
+    return values, errors
+
+
+@app.route("/api/submit", methods=["POST"])
+def submit():
+    d = request.get_json(silent=True)
+    values, errors = validate_submission(d if isinstance(d, dict) else {})
     if errors:
         return jsonify(ok=False, errors=errors), 400
 
@@ -162,9 +183,9 @@ def submit():
             " hof_contact, counts, lab_assets, suggestions) VALUES (?,?,?,?,?,?,?,?)",
             (
                 datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                branch, classroom, hof, contact, json.dumps(counts),
-                (d.get("lab_assets") or "").strip(),
-                (d.get("suggestions") or "").strip(),
+                values["branch"], values["classroom_count"], values["hof_name"],
+                values["hof_contact"], json.dumps(values["counts"]),
+                values["lab_assets"], values["suggestions"],
             ),
         )
     return jsonify(ok=True)
@@ -197,9 +218,11 @@ def report():
     latest = latest_per_branch()
     details = {
         b: {
+            "id": r["id"],
             "classroom_count": r["classroom_count"],
             "hof_name": r["hof_name"],
             "hof_contact": r["hof_contact"],
+            "counts": json.loads(r["counts"]),
             "lab_assets": r["lab_assets"],
             "suggestions": r["suggestions"],
             "submitted": r["created_at"],
@@ -213,6 +236,57 @@ def report():
         details=details,
         submitted_count=len(latest),
     )
+
+
+@app.route("/api/submissions/<int:submission_id>", methods=["PUT"])
+@admin_required
+def update_submission(submission_id):
+    d = request.get_json(silent=True)
+    if not isinstance(d, dict):
+        return jsonify(ok=False, message="Invalid report data."), 400
+
+    values, errors = validate_submission(d)
+    if errors:
+        return jsonify(ok=False, errors=errors), 400
+
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with db() as con:
+        con.execute("BEGIN IMMEDIATE")
+        existing = con.execute(
+            "SELECT id, branch FROM submissions WHERE id = ?", (submission_id,)
+        ).fetchone()
+        if existing is None:
+            return jsonify(ok=False, message="This report no longer exists."), 404
+
+        latest_source = con.execute(
+            "SELECT MAX(id) FROM submissions WHERE branch = ?", (existing["branch"],)
+        ).fetchone()[0]
+        if latest_source != submission_id:
+            return jsonify(
+                ok=False,
+                message="A newer report was submitted for this branch. Refresh and edit the latest report.",
+            ), 409
+
+        latest_target = con.execute(
+            "SELECT MAX(id) FROM submissions WHERE branch = ?", (values["branch"],)
+        ).fetchone()[0]
+        if values["branch"] != existing["branch"] and latest_target is not None and latest_target > submission_id:
+            return jsonify(
+                ok=False,
+                message="A newer report already exists for the selected branch. Choose another branch or refresh.",
+            ), 409
+
+        con.execute(
+            "UPDATE submissions SET created_at = ?, branch = ?, classroom_count = ?,"
+            " hof_name = ?, hof_contact = ?, counts = ?, lab_assets = ?, suggestions = ?"
+            " WHERE id = ?",
+            (
+                now, values["branch"], values["classroom_count"], values["hof_name"],
+                values["hof_contact"], json.dumps(values["counts"]), values["lab_assets"],
+                values["suggestions"], submission_id,
+            ),
+        )
+    return jsonify(ok=True)
 
 
 @app.route("/api/export.csv")

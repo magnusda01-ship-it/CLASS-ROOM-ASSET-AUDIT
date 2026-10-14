@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap');
+
 :root {
   --ink: #0f1c2b;
   --board: #0b6b57;
@@ -18,7 +20,7 @@ body {
   margin: 0;
   background: var(--mist);
   color: var(--ink);
-  font-family: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  font-family: "Lora", serif;
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;

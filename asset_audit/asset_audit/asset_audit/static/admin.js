@@ -3,6 +3,9 @@ const $ = (sel) => document.querySelector(sel);
 const esc = (s) =>
   String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
+let editSubmissionId = null;
+let currentReport = null;
+
 function setUpdated(text, bad) {
   const u = $("#updated");
   u.textContent = text;
@@ -22,6 +25,7 @@ async function load() {
     return;
   }
   const r = await res.json();
+  currentReport = r;
 
   // ----- branch progress -----
   const n = r.branches.length;
@@ -67,7 +71,7 @@ async function load() {
 
   // ----- branch details -----
   let d = "<thead><tr><th>Branch</th><th>Class rooms</th><th>HOF</th><th>Contact</th>" +
-          "<th>Lab assets</th><th>Suggestions</th><th>Submitted</th></tr></thead><tbody>";
+          "<th>Lab assets</th><th>Suggestions</th><th>Submitted</th><th>Action</th></tr></thead><tbody>";
   let any = false;
   r.branches.forEach((b) => {
     const x = r.details[b];
@@ -75,17 +79,116 @@ async function load() {
     any = true;
     d += `<tr><td>${esc(b)}</td><td class="num">${x.classroom_count}</td><td>${esc(x.hof_name)}</td>` +
          `<td class="num">${esc(x.hof_contact)}</td><td>${esc(x.lab_assets)}</td>` +
-         `<td>${esc(x.suggestions)}</td><td class="num">${esc(x.submitted)}</td></tr>`;
+         `<td>${esc(x.suggestions)}</td><td class="num">${esc(x.submitted)}</td>` +
+         `<td><button type="button" class="edit-button table-edit" data-edit-id="${x.id}" data-branch="${esc(b)}">Edit</button></td></tr>`;
   });
-  if (!any) d += '<tr><td colspan="7" class="empty">No reports yet. They appear here as soon as a branch submits the form.</td></tr>';
+  if (!any) d += '<tr><td colspan="8" class="empty">No reports yet. They appear here as soon as a branch submits the form.</td></tr>';
   d += "</tbody>";
   $("#details").innerHTML = d;
 
   setUpdated("Updated " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), false);
 }
 
+async function initializeEditor() {
+  const res = await fetch("/api/config");
+  if (!res.ok) throw new Error(`Could not load edit form options (error ${res.status}).`);
+  const config = await res.json();
+
+  $("#edit-branch").innerHTML = config.branches
+    .map((branch) => `<option value="${esc(branch)}">${esc(branch)}</option>`)
+    .join("");
+  $("#edit-equipment").innerHTML = config.equipment
+    .map((item) => `<label>${esc(item.label)}<input type="number" min="0" step="1" data-edit-key="${esc(item.key)}" required></label>`)
+    .join("");
+}
+
+function openEditor(submissionId, branch) {
+  const details = currentReport?.details?.[branch];
+  if (!details || details.id !== submissionId) {
+    setUpdated("This report changed. Refresh the page and try again.", true);
+    return;
+  }
+
+  editSubmissionId = submissionId;
+  const form = $("#edit-form");
+  form.elements.branch.value = branch;
+  form.elements.classroom_count.value = details.classroom_count;
+  form.elements.hof_name.value = details.hof_name;
+  form.elements.hof_contact.value = details.hof_contact;
+  form.elements.lab_assets.value = details.lab_assets || "";
+  form.elements.suggestions.value = details.suggestions || "";
+  $("#edit-equipment").querySelectorAll("[data-edit-key]").forEach((input) => {
+    input.value = details.counts[input.dataset.editKey] ?? 0;
+  });
+  $("#edit-status").textContent = "";
+  $("#edit-dialog").showModal();
+}
+
 $("#refresh").addEventListener("click", load);
 $("#print").addEventListener("click", () => window.print());
 
-load();
-setInterval(load, 30000); // keep the admin window fresh
+$("#details").addEventListener("click", (ev) => {
+  const button = ev.target.closest("[data-edit-id]");
+  if (!button) return;
+  openEditor(Number(button.dataset.editId), button.dataset.branch);
+});
+
+$("#edit-close").addEventListener("click", () => $("#edit-dialog").close());
+$("#edit-cancel").addEventListener("click", () => $("#edit-dialog").close());
+
+$("#edit-form").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const form = ev.currentTarget;
+  const saveButton = form.querySelector('button[type="submit"]');
+  const status = $("#edit-status");
+  const counts = {};
+  $("#edit-equipment").querySelectorAll("[data-edit-key]").forEach((input) => {
+    counts[input.dataset.editKey] = input.value;
+  });
+  const payload = {
+    branch: form.elements.branch.value,
+    classroom_count: form.elements.classroom_count.value,
+    hof_name: form.elements.hof_name.value,
+    hof_contact: form.elements.hof_contact.value,
+    counts,
+    lab_assets: form.elements.lab_assets.value,
+    suggestions: form.elements.suggestions.value,
+  };
+
+  saveButton.disabled = true;
+  status.className = "edit-status";
+  status.textContent = "";
+  try {
+    const res = await fetch(`/api/submissions/${editSubmissionId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      const errors = Object.values(data.errors || {});
+      status.classList.add("bad");
+      status.textContent = data.message || errors.join(" ") || `Could not save changes (error ${res.status}).`;
+      return;
+    }
+    $("#edit-dialog").close();
+    await load();
+  } catch (e) {
+    status.classList.add("bad");
+    status.textContent = "Could not reach the server. Check the connection and try again.";
+  } finally {
+    saveButton.disabled = false;
+  }
+});
+
+async function start() {
+  try {
+    await initializeEditor();
+    await load();
+    setInterval(load, 30000); // keep the admin window fresh
+  } catch (e) {
+    setUpdated(e.message || "Could not initialize the admin view.", true);
+  }
+}
+
+start();

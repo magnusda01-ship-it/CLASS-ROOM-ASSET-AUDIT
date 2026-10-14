@@ -1,6 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap');
+
 :root {
   --ink: #0f1c2b;
   --board: #0b6b57;
+  --board-dark: #084e40;
   --board-tint: #e8f4f0;
   --mist: #eef2f1;
   --paper: #ffffff;
@@ -18,7 +21,7 @@ body {
   margin: 0;
   background: var(--mist);
   color: var(--ink);
-  font-family: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  font-family: "Lora", serif;
   font-size: 15px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -134,10 +137,76 @@ table.details { border-collapse: collapse; width: 100%; font-size: 14px; }
 .details .num { font-variant-numeric: tabular-nums; }
 .details .empty { padding: 28px 16px; color: var(--muted); text-align: center; }
 
+.edit-button {
+  border: 1px solid var(--board);
+  border-radius: 8px;
+  padding: 7px 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.edit-button.primary { background: var(--board); color: #fff; }
+.edit-button.primary:hover { background: var(--board-dark); }
+.edit-button.secondary { background: #fff; color: var(--ink); border-color: var(--line); }
+.edit-button:disabled { opacity: .6; cursor: wait; }
+.table-edit { padding: 5px 12px; }
+
+#edit-dialog {
+  width: min(760px, calc(100% - 24px));
+  max-height: calc(100% - 24px);
+  padding: 24px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 24px 70px rgba(15, 28, 43, .28);
+}
+#edit-dialog::backdrop { background: rgba(15, 28, 43, .55); }
+.edit-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.edit-header h2 { margin: 0; font-size: 20px; }
+.edit-close {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 26px;
+  cursor: pointer;
+}
+#edit-dialog h3 { margin: 24px 0 12px; font-size: 16px; }
+.edit-fields, .edit-equipment {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+#edit-dialog label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; }
+#edit-dialog input, #edit-dialog select, #edit-dialog textarea {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: #fff;
+  font: inherit;
+  font-size: 14px;
+}
+#edit-dialog textarea { min-height: 88px; resize: vertical; }
+.edit-notes { margin-top: 20px; }
+.edit-status { min-height: 22px; margin: 12px 0 0; color: var(--board); font-size: 13px; }
+.edit-status.bad { color: var(--alert); }
+.edit-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+
 @media (max-width: 640px) {
   .hero { padding: 26px 16px 96px; }
   .sheet { padding: 20px 14px 24px; margin-left: 10px; margin-right: 10px; }
   .big strong { font-size: 36px; }
+  #edit-dialog { padding: 18px; }
+  .edit-fields, .edit-equipment { grid-template-columns: 1fr; gap: 10px; }
 }
 @media (prefers-reduced-motion: reduce) { .track i { transition: none; } }
 
@@ -147,6 +216,7 @@ table.details { border-collapse: collapse; width: 100%; font-size: 14px; }
   .hero { background: #fff; color: var(--ink); padding: 0 0 10px; }
   .subtitle, .big span, .p-label, .updated { color: var(--muted); }
   .track, .pending { display: none; }
+  .details th:last-child, .details td:last-child { display: none; }
   .sheet { margin: 0; border: 0; box-shadow: none; padding: 0; }
   .table-wrap { overflow: visible; border-radius: 0; }
   table.matrix { min-width: 0; }

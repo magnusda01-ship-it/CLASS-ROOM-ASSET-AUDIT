@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap');
+
 :root {
   --bg: #f4f6f8;
   --card: #ffffff;
@@ -15,7 +17,7 @@
 
 body {
   margin: 0;
-  font-family: Arial, "Segoe UI", system-ui, sans-serif;
+  font-family: "Lora", serif;
   background: var(--bg);
   color: var(--ink);
 }
@@ -98,7 +100,7 @@ table.sheet { border-collapse: collapse; width: 100%; min-width: 1500px; table-l
 
 .sheet thead th {
   background: var(--head);
-  font-family: "Times New Roman", serif;
+  font-family: "Lora", serif;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -108,7 +110,7 @@ table.sheet { border-collapse: collapse; width: 100%; min-width: 1500px; table-l
   word-break: break-all;
 }
 .sheet thead th:first-child {
-  font-family: Arial, sans-serif;
+  font-family: "Lora", serif;
   font-size: 19px;
   text-transform: none;
   width: 210px;
