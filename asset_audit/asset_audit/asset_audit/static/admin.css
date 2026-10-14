@@ -154,6 +154,14 @@ table.details { border-collapse: collapse; width: 100%; font-size: 14px; }
 .table-edit { padding: 5px 12px; }
 .matrix thead th .col-edit { display: block; margin: 6px auto 0; padding: 3px 10px; font-size: 11px; background: #fff; color: var(--board); }
 .matrix thead th .col-edit:hover { background: var(--board); color: #fff; }
+/* hidden until the pointer is on that branch column (header or any cell below it) */
+.matrix thead th .col-edit { opacity: 0; pointer-events: none; transition: opacity .12s; }
+.matrix thead th:hover .col-edit,
+.matrix thead th.col-hover .col-edit,
+.matrix thead th .col-edit:focus-visible { opacity: 1; pointer-events: auto; }
+.matrix td.col-hover { background: #eef6f3 !important; }
+/* touch screens have no hover, so keep the buttons visible there */
+@media (hover: none) { .matrix thead th .col-edit { opacity: 1; pointer-events: auto; } }
 
 #edit-dialog {
   width: min(760px, calc(100% - 24px));

@@ -70,6 +70,7 @@ async function load() {
   });
   h += "</tr></tbody>";
   $("#sheet").innerHTML = h;
+  hoverCol = -1;
 
   // ----- branch details -----
   let d = "<thead><tr><th>Branch</th><th class=\"action-column\">Action</th><th>Class rooms</th><th>HOF</th><th>Contact</th>" +
@@ -142,6 +143,25 @@ function onEditClick(ev) {
 }
 $("#details").addEventListener("click", onEditClick);
 $("#sheet").addEventListener("click", onEditClick);
+
+// show the Edit/Add button only for the branch column the pointer is on
+let hoverCol = -1;
+function setHoverCol(idx) {
+  if (idx === hoverCol) return;
+  hoverCol = idx;
+  document.querySelectorAll("#sheet .col-hover").forEach((el) => el.classList.remove("col-hover"));
+  if (idx < 1) return;
+  document.querySelectorAll("#sheet tr").forEach((tr) => {
+    const cell = tr.cells[idx];
+    if (cell && cell.tagName === "TD") cell.classList.add("col-hover");
+    if (cell && cell.tagName === "TH" && tr.parentElement.tagName === "THEAD") cell.classList.add("col-hover");
+  });
+}
+$("#sheet").addEventListener("mouseover", (ev) => {
+  const cell = ev.target.closest("td, th");
+  setHoverCol(cell ? cell.cellIndex : -1);
+});
+$("#sheet").addEventListener("mouseleave", () => setHoverCol(-1));
 
 $("#edit-close").addEventListener("click", () => $("#edit-dialog").close());
 $("#edit-cancel").addEventListener("click", () => $("#edit-dialog").close());
