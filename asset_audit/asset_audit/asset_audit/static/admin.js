@@ -52,7 +52,7 @@ async function load() {
   const totals = Object.fromEntries(r.branches.map((b) => [b, 0]));
   let prevGroup = null;
   r.equipment.forEach((e) => {
-    const group = e.key.split("_")[0];
+    const group = e.group;
     const start = prevGroup !== null && group !== prevGroup;
     prevGroup = group;
     h += `<tr class="${start ? "grp-start" : ""}"><th scope="row" title="${esc(e.label)}">${esc(e.label)}</th>`;

@@ -27,10 +27,12 @@ BRANCHES = [
     "TRIVANDRUM", "MARTHANDAM", "NAGPUR", "HYDERABAD", "BANGALORE",
 ]
 
-# Furniture is a simple pair of totals.
-FURNITURE = [
+# General classroom assets: simple totals.
+ASSET = [
     ("student_table", "TOTAL STUDENT TABLE"),
     ("student_chair", "TOTAL STUDENT CHAIR"),
+    ("white_board", "TOTAL WHITE BOARD"),
+    ("projector", "TOTAL PROJECTOR"),
 ]
 
 # The three numbered asset tables (SL NO + NAME). Keys are table + SL NO,
@@ -57,9 +59,9 @@ TABLES = [
 
 # key, label (label is what the admin matrix / Excel / CSV show),
 # SHORT = the plain name shown inside each card on the branch form.
-EQUIPMENT = list(FURNITURE)
-SHORT = dict(FURNITURE)
-GROUPS = [("FURNITURE", [k for k, _ in FURNITURE], False)]
+EQUIPMENT = list(ASSET)
+SHORT = dict(ASSET)
+GROUPS = [("ASSET", [k for k, _ in ASSET], True)]
 for _table, _names in TABLES:
     _keys = []
     for _i, _name in enumerate(_names, 1):
@@ -69,6 +71,7 @@ for _table, _names in TABLES:
         _keys.append(_key)
     GROUPS.append((_table, _keys, True))
 KEYS = [k for k, _ in EQUIPMENT]
+GROUP_OF = {k: n for n, ks, _ in GROUPS for k in ks}
 
 
 def db():
@@ -247,7 +250,7 @@ def report():
     }
     return jsonify(
         branches=BRANCHES,
-        equipment=[{"key": k, "label": l} for k, l in EQUIPMENT],
+        equipment=[{"key": k, "label": l, "group": GROUP_OF[k]} for k, l in EQUIPMENT],
         matrix=build_matrix(latest),
         details=details,
         submitted_count=len(latest),
